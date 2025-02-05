@@ -1,6 +1,8 @@
 import pygame
 from random import randint
-from pygame.locals import *
+
+# `import *` is typically not recommended but I know it's the standard with pygame
+from pygame.locals import *  # type: ignore
 
 TURQUOISE = (64, 224, 208)
 GREEN = (60, 242, 71)
@@ -8,8 +10,8 @@ BLACK = (0, 0, 0)
 YELLOW = (255, 255, 0)
 BLOCK_SIZE = 20
 
+
 class App:
-        
     def __init__(self):
         self._running = True
         self._display_surf = None
@@ -19,26 +21,26 @@ class App:
         self.fruit = None
 
     def on_init(self):
+        # this function has no return statement & therefore will always return None (see line )
+        # this can all be put into __init__()
         pygame.init()
         self._display_surf = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF)
         self._running = True
-        self.snake = Square_snake(5, 5, YELLOW, self._display_surf)
-        self.fruit = Snake_fruit(randint(0, 29), randint(0, 29), TURQUOISE, self._display_surf)
-    
+        self.snake = SquareSnake(5, 5, YELLOW, self._display_surf)
+        self.fruit = SnakeFruit(randint(0, 29), randint(0, 29), TURQUOISE, self._display_surf)
+
     def on_event(self, event):
         if event.type == pygame.QUIT:
             self._running = False
-    
+
     def on_loop(self):
         if self.snake.body[0] == (self.fruit.x, self.fruit.y):
             while True:
                 new_fruit_x, new_fruit_y = randint(0, 29), randint(0, 29)
                 if (new_fruit_x, new_fruit_y) not in self.snake.body:
                     break
-            self.fruit = Snake_fruit(new_fruit_x, new_fruit_y, TURQUOISE, self._display_surf)
+            self.fruit = SnakeFruit(new_fruit_x, new_fruit_y, TURQUOISE, self._display_surf)
             self.snake.grow()
-
-
 
     def on_render(self):
         self._display_surf.fill(BLACK)
@@ -58,13 +60,12 @@ class App:
                 rect = pygame.Rect(x, y, block_size, block_size)
                 pygame.draw.rect(self._display_surf, GREEN, rect, 1 )
 
-
-
-
     def on_execute(self):
+        # self.on_init() always returns None (see line )
+        # therefore this conditional is always False
         if self.on_init() == False:
             self._running = False
-        
+
         while(self._running):
             for event in pygame.event.get():
                 self.on_event(event)
@@ -72,32 +73,28 @@ class App:
             self.on_loop()
             self.snake.handle_keys()
             self.on_render()
-            
+
             self.clock.tick(10)
         self.on_cleanup()
 
 
-class Square_snake():
+# in python we typically write class names with CamelCase rather than snake_case
+class SquareSnake():
     def __init__(self, x, y, color, surface):
             self.x = x
             self.y = y
             self.color = color
             self.surface = surface
-            #self.image = pygame.Surface((BLOCK_SIZE, BLOCK_SIZE))
-            #self.image.fill(self.color)
-            #self.rect = self.image.get_rect(topleft=(self.x * BLOCK_SIZE, self.y * BLOCK_SIZE))
-            self.direction = "RIGHT" 
+            self.direction = "RIGHT"
             self.body = [(x, y)]
-        
+
     def draw(self):
-        #self.surface.blit(self.image, self.rect)
         for tail in self.body:
             rect = pygame.Rect(tail[0] * BLOCK_SIZE, tail[1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
             pygame.draw.rect(self.surface, self.color, rect)
-    
+
     def update(self):
         head_x, head_y = self.body[0]
-
 
         if self.direction == "LEFT":
             head_x -= 1
@@ -114,16 +111,15 @@ class Square_snake():
 
         self.body.insert(0, (head_x, head_y))
         self.body.pop()
-        
+
     def grow(self):
         self.body.append(self.body[-1])
-
 
     def handle_keys(self):
         key = pygame.key.get_pressed()
 
-        if key[pygame.K_LEFT] and self.direction != "RIGHT": 
-            self.direction = "LEFT" 
+        if key[pygame.K_LEFT] and self.direction != "RIGHT":
+            self.direction = "LEFT"
         if key[pygame.K_RIGHT] and self.direction != "LEFT":
             self.direction = "RIGHT"
         if key[pygame.K_UP] and self.direction != "DOWN":
@@ -131,7 +127,8 @@ class Square_snake():
         if key[pygame.K_DOWN] and self.direction != "UP":
             self.direction = "DOWN"
 
-class Snake_fruit():
+
+class SnakeFruit():
     def __init__(self, x, y, color, surface):
         self.x = x
         self.y = y
@@ -140,18 +137,14 @@ class Snake_fruit():
         self.image = pygame.Surface((BLOCK_SIZE, BLOCK_SIZE))
         self.image.fill(self.color)
         self.rect = self.image.get_rect(topleft=(self.x * BLOCK_SIZE, self.y * BLOCK_SIZE))
-    
+
     def draw(self):
         self.surface.blit(self.image, self.rect)
-        
+
     def update(self):
         self.rect.topleft = (self.x * BLOCK_SIZE, self.y * BLOCK_SIZE)
-
-
-
 
 
 if __name__ == "__main__":
     theApp = App()
     theApp.on_execute()
-
